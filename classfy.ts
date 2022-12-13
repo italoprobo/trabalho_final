@@ -139,7 +139,7 @@ export class Playlist {
     id_playlist: string;
     nome_playlist: string;
     musicas: Musica[] = []
-    qtd_musicas: number = this.musicas.length;
+    qtd_musicas: number = 0;
 
     constructor(id_playlist: string, nome_playlist: string){
         this.id_playlist = id_playlist
@@ -148,12 +148,14 @@ export class Playlist {
 
     inserir_musica_na_playlist(musica: Musica): void {
         this.musicas.push(musica)
+        this.qtd_musicas++
     }
 
     remover_musica_da_playlist(musica: Musica): void {
         for(let m of this.musicas){
             if(musica.id_musica == m.id_musica) {
                 this.musicas.pop()
+                this.qtd_musicas--
             }
         }
     }
@@ -166,7 +168,7 @@ export class Playlist {
         return this.musicas;
     }
 
-    consultarIdMusica(id: string): Musica {
+    consultarIdMusicaPlaylist(id: string): Musica {
         let musicaProcurada!: Musica;
         for (let i = 0; i < this.musicas.length; i++) {
             if (this.musicas[i].id_musica == id) {

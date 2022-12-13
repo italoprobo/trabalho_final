@@ -14,7 +14,9 @@ do {
     console.log('1 - Adicionar Usuário      2 - Exibir Dados Usuário     3 - Alterar Usuário\n' +
         '4 - Remover Usuário       5 - Adicionar Música       6 - Exibir Dados Música\n' +
         '7 - Remover Musica       8 - Adicionar Favoritos        9 - Exibir Favoritos\n' +
-        '10 - Remover Favoritos         0 - Sair\n');
+        '10 - Remover Favoritos        11 - Criar Playlist        12 - Inserir Música na Playlist\n' +
+        '13 - Exibir Playlist        14 - Modo Aleatório Playlist        15 - Remover Playlist\n' +
+        '0 - Sair\n');
     opcao = get_text("Opção: ");
     switch (opcao) {
         case "1":
@@ -47,6 +49,12 @@ do {
         case "10":
             removerDosFavoritos();
             break;
+        case "11":
+            criarPlaylist();
+            break;
+        case "12":
+            inserir_musica_na_playlistApp();
+            break;
     }
     input('Operação finalizada. Pressione <enter>');
     console.clear();
@@ -71,19 +79,25 @@ function inserirUsuarioApp() {
     let id = get_text('Digite o seu id: ');
     let nome = get_text('Digite o seu nome: ');
     let usuario;
-    let op = '';
-    do {
-        op = get_text('Você deseja criar uma Premium ou Free? (p/f) ').toLowerCase();
-        if (op == "f") {
-            usuario = new classfy_1.UsuarioFree(id, nome);
-            break;
-        }
-        else if (op == "p") {
-            usuario = new classfy_1.UsuarioPremium(id, nome);
-            break;
-        }
-    } while (op != 'f' || 'p');
-    app.inserirUsuario(usuario);
+    let usuarioProcurado = app.consultarIdUsuario(id);
+    if (usuarioProcurado == null) {
+        let op = '';
+        do {
+            op = get_text('Você deseja criar uma Premium ou Free? (p/f) ').toLowerCase();
+            if (op == "f") {
+                usuario = new classfy_1.UsuarioFree(id, nome);
+                break;
+            }
+            else if (op == "p") {
+                usuario = new classfy_1.UsuarioPremium(id, nome);
+                break;
+            }
+        } while (op != 'f' || 'p');
+        app.inserirUsuario(usuario);
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioJaCadastradoError('Usuário já cadastrado!');
+    }
 }
 function exibirUsuario() {
     let id = get_text('Digite o id da sua conta: ');
@@ -91,6 +105,12 @@ function exibirUsuario() {
     if (usuario != null) {
         console.log(`Id: ${app.consultarIdUsuario(id).id_usuario}\n` +
             `Nome: ${app.consultarIdUsuario(id).nome_usuario}\n`);
+        if (usuario instanceof classfy_1.UsuarioPremium) {
+            console.log("Playlists:");
+            for (let p of usuario.playlists) {
+                console.log(`Nome: ${p.nome_playlist}, Quantidade de músicas: ${p.qtd_musicas}`);
+            }
+        }
     }
     else {
         throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
@@ -122,7 +142,13 @@ function inserirMusicaApp() {
     let anoLancamento = get_text('Digite o ano de lançamento: ');
     let genero = get_text('Digite o gênero: ');
     let musica = new classfy_1.Musica(id, nome, artista, tempo, anoLancamento, genero);
-    app.inserirMusica(musica);
+    let musicaProcurada = app.consultarIdMusica(id);
+    if (musicaProcurada == null) {
+        app.inserirMusica(musica);
+    }
+    else {
+        throw new ErrosAplicacao_1.MusicaJaCadastradaError('Musica já cadastrada!');
+    }
 }
 function exibirMusica() {
     let id = get_text('Digite o id da musica: ');
@@ -153,7 +179,7 @@ function adicionarAosFavoritos() {
     console.log('Música adicionada aos favoritos!');
 }
 function exibirFavoritos() {
-    let id = get_text('Digite o id do usuário: ');
+    let id = get_text('Digite o id do usuário: \n');
     let usuario = app.consultarIdUsuario(id);
     if (usuario != null) {
         for (let f of usuario.favoritos) {
@@ -170,4 +196,46 @@ function removerDosFavoritos() {
     let idMusica = get_text('Digite o id da música: ');
     app.removerFavorito(idUsuario, idMusica);
     console.log("Música removida dos favoritos");
+}
+function criarPlaylist() {
+    let idPlaylist = get_text('Digite o id da playlist: ');
+    let nome = get_text('Digite o nome da Playlist: ');
+    let idUsuario = get_text('Digite o id do usuário: ');
+    let usuario = app.consultarIdUsuario(idUsuario);
+    let playlist = new classfy_1.Playlist(idPlaylist, nome);
+    if (usuario instanceof classfy_1.UsuarioPremium) {
+        usuario.inserirPlaylist(playlist);
+    }
+    else {
+        console.log("Você não possui uma conta Premium");
+    }
+}
+function inserir_musica_na_playlistApp() {
+    let idMusica = get_text('Digite o id da música: ');
+    let idUsuario = get_text('Digite o id do usuário: ');
+    let idPlaylist = get_text('Digite o id da Playlist: ');
+    let usuario = app.consultarIdUsuario(idUsuario);
+    if (usuario != null) {
+        if (usuario instanceof classfy_1.UsuarioPremium) {
+            let playlist = usuario.consultarIdPlaylist(idPlaylist);
+            let musicaProcurada = playlist.consultarIdMusica(idMusica);
+            if (playlist == null) {
+                throw new ErrosAplicacao_1.PlaylistNaoEncontradaError('Playlist não encontrada!');
+            }
+            else if (musicaProcurada == null) {
+                playlist.inserir_musica_na_playlist(musicaProcurada);
+            }
+            else {
+                throw new ErrosAplicacao_1.MusicaJaCadastradaError('Música já cadastrada na playlist!');
+            }
+        }
+        else {
+            console.log("Você não possui uma conta Premium");
+        }
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError('Usuário não encontrado!');
+    }
+}
+function exibirPlaylist() {
 }

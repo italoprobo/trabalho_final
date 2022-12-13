@@ -116,7 +116,6 @@ exports.Musica = Musica;
 class Playlist {
     id_playlist;
     nome_playlist;
-    tempo_playlist = 0;
     musicas = [];
     qtd_musicas = this.musicas.length;
     constructor(id_playlist, nome_playlist) {
@@ -125,17 +124,11 @@ class Playlist {
     }
     inserir_musica_na_playlist(musica) {
         this.musicas.push(musica);
-        let tempo_minutos = Number(musica.tempo_musica.split(":")[0]);
-        let tempo_segundos = Number(musica.tempo_musica.split(":")[1]) + tempo_minutos * 60;
-        this.tempo_playlist += tempo_segundos;
     }
     remover_musica_da_playlist(musica) {
         for (let m of this.musicas) {
             if (musica.id_musica == m.id_musica) {
                 this.musicas.pop();
-                let tempo_minutos = Number(musica.tempo_musica.split(":")[0]);
-                let tempo_segundos = Number(musica.tempo_musica.split(":")[1]) + tempo_minutos * 60;
-                this.tempo_playlist -= tempo_segundos;
             }
         }
     }
@@ -145,6 +138,15 @@ class Playlist {
             [this.musicas[i], this.musicas[j]] = [this.musicas[j], this.musicas[i]];
         }
         return this.musicas;
+    }
+    consultarIdMusica(id) {
+        let musicaProcurada;
+        for (let i = 0; i < this.musicas.length; i++) {
+            if (this.musicas[i].id_musica == id) {
+                musicaProcurada = this.musicas[i];
+            }
+        }
+        return musicaProcurada;
     }
 }
 exports.Playlist = Playlist;

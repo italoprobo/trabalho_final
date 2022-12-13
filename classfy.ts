@@ -138,7 +138,6 @@ export class Playlist {
 
     id_playlist: string;
     nome_playlist: string;
-    tempo_playlist: number = 0;
     musicas: Musica[] = []
     qtd_musicas: number = this.musicas.length;
 
@@ -149,18 +148,12 @@ export class Playlist {
 
     inserir_musica_na_playlist(musica: Musica): void {
         this.musicas.push(musica)
-        let tempo_minutos = Number(musica.tempo_musica.split(":")[0])
-        let tempo_segundos = Number(musica.tempo_musica.split(":")[1]) + tempo_minutos * 60
-        this.tempo_playlist+= tempo_segundos 
     }
 
     remover_musica_da_playlist(musica: Musica): void {
         for(let m of this.musicas){
             if(musica.id_musica == m.id_musica) {
                 this.musicas.pop()
-                let tempo_minutos = Number(musica.tempo_musica.split(":")[0])
-                let tempo_segundos = Number(musica.tempo_musica.split(":")[1]) + tempo_minutos * 60
-                this.tempo_playlist-= tempo_segundos
             }
         }
     }
@@ -173,7 +166,16 @@ export class Playlist {
         return this.musicas;
     }
 
+    consultarIdMusica(id: string): Musica {
+        let musicaProcurada!: Musica;
+        for (let i = 0; i < this.musicas.length; i++) {
+            if (this.musicas[i].id_musica == id) {
+                musicaProcurada = this.musicas[i];
+            }
+        }
 
+        return musicaProcurada
+    }
 }
 
 export class App implements metodosUsuario, metodosMusica {

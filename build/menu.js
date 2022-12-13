@@ -15,7 +15,8 @@ do {
         '4 - Remover Usuário       5 - Adicionar Música       6 - Exibir Dados Música\n' +
         '7 - Remover Musica       8 - Adicionar Favoritos        9 - Exibir Favoritos\n' +
         '10 - Remover Favoritos        11 - Criar Playlist        12 - Inserir Música na Playlist\n' +
-        '13 - Exibir Playlist        14 - Modo Aleatório Playlist        15 - Remover Playlist\n' +
+        '13 - Exibir Playlist        14 - Modo Aleatório Playlist        15 - Remover Música da Playlist\n' +
+        '16 - Remover Playlist        17 - Virar Premium        18- Virar Free\n' +
         '0 - Sair\n');
     opcao = get_text("Opção: ");
     switch (opcao) {
@@ -54,6 +55,24 @@ do {
             break;
         case "12":
             inserir_musica_na_playlistApp();
+            break;
+        case "13":
+            exibirPlaylist();
+            break;
+        case "14":
+            ordemAleatoriaApp();
+            break;
+        case "15":
+            remover_musica_da_playlistApp();
+            break;
+        case "16":
+            removerPlaylistApp();
+            break;
+        case "17":
+            virarPremium();
+            break;
+        case "18":
+            virarFree();
             break;
     }
     input('Operação finalizada. Pressione <enter>');
@@ -139,6 +158,9 @@ function inserirMusicaApp() {
     let nome = get_text('Digite o nome da música: ');
     let artista = get_text('Digite o nome do artista: ');
     let tempo = get_text('Digite o tempo da Música (mm:ss): ');
+    if (Number(tempo.split(":")[0]) >= 60 || Number(tempo.split(":")[1]) >= 60) {
+        throw new ErrosAplicacao_1.FormatoInvalidoError("Formato inválido!");
+    }
     let anoLancamento = get_text('Digite o ano de lançamento: ');
     let genero = get_text('Digite o gênero: ');
     let musica = new classfy_1.Musica(id, nome, artista, tempo, anoLancamento, genero);
@@ -179,7 +201,7 @@ function adicionarAosFavoritos() {
     console.log('Música adicionada aos favoritos!');
 }
 function exibirFavoritos() {
-    let id = get_text('Digite o id do usuário: \n');
+    let id = get_text('Digite o id do usuário: ');
     let usuario = app.consultarIdUsuario(id);
     if (usuario != null) {
         for (let f of usuario.favoritos) {
@@ -217,16 +239,25 @@ function inserir_musica_na_playlistApp() {
     let usuario = app.consultarIdUsuario(idUsuario);
     if (usuario != null) {
         if (usuario instanceof classfy_1.UsuarioPremium) {
-            let playlist = usuario.consultarIdPlaylist(idPlaylist);
-            let musicaProcurada = playlist.consultarIdMusica(idMusica);
-            if (playlist == null) {
-                throw new ErrosAplicacao_1.PlaylistNaoEncontradaError('Playlist não encontrada!');
-            }
-            else if (musicaProcurada == null) {
-                playlist.inserir_musica_na_playlist(musicaProcurada);
+            let indexofPlaylist = usuario.consultarIndexPlaylist(idPlaylist);
+            if (indexofPlaylist != -1) {
+                let musica = app.consultarIdMusica(idMusica);
+                if (musica != null) {
+                    let playlist = usuario.playlists[indexofPlaylist];
+                    let musicaProcurada = playlist.consultarIdMusicaPlaylist(idMusica);
+                    if (musicaProcurada != null) {
+                        usuario.playlists[indexofPlaylist].inserir_musica_na_playlist(musica);
+                    }
+                    else {
+                        throw new ErrosAplicacao_1.MusicaJaCadastradaError("Música já cadastrada!");
+                    }
+                }
+                else {
+                    throw new ErrosAplicacao_1.MusicaNaoEncontradaError("Música não encontrada!");
+                }
             }
             else {
-                throw new ErrosAplicacao_1.MusicaJaCadastradaError('Música já cadastrada na playlist!');
+                throw new ErrosAplicacao_1.PlaylistNaoEncontradaError("Playlist não encontrada");
             }
         }
         else {
@@ -234,8 +265,126 @@ function inserir_musica_na_playlistApp() {
         }
     }
     else {
-        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError('Usuário não encontrado!');
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
     }
 }
 function exibirPlaylist() {
+    let idUsuario = get_text('Digite o id do usuário: ');
+    let idPlaylist = get_text('Digite o id do playlist: ');
+    console.log("\n");
+    let usuario = app.consultarIdUsuario(idUsuario);
+    if (usuario != null) {
+        if (usuario instanceof classfy_1.UsuarioPremium) {
+            let playlist = usuario.consultarIdPlaylist(idPlaylist);
+            if (playlist != null) {
+                console.log(`Nome Playlist: ${playlist.nome_playlist}`);
+                console.log(`Quantidade de músicas na playlist: ${playlist.qtd_musicas}`);
+                if (playlist.qtd_musicas > 0) {
+                    for (let m of playlist.musicas) {
+                        console.log(`Nome: ${m.nome_musica}, Artista: ${m.nome_artista}\n`);
+                    }
+                }
+                else {
+                    console.log("Playlist vazia!");
+                }
+            }
+            else {
+                throw new ErrosAplicacao_1.PlaylistNaoEncontradaError('Playlist não encontrada');
+            }
+        }
+        else {
+            console.log("Você não possui uma conta Premium");
+        }
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
+    }
+}
+function ordemAleatoriaApp() {
+    let idUsuario = get_text('Digite o id do usuário: ');
+    let idPlaylist = get_text('Digite o id do playlist: ');
+    let usuario = app.consultarIdUsuario(idUsuario);
+    if (usuario != null) {
+        if (usuario instanceof classfy_1.UsuarioPremium) {
+            let playlist = usuario.consultarIdPlaylist(idPlaylist);
+            if (playlist != null) {
+                playlist.ordemAleatoria();
+            }
+        }
+        else {
+            console.log("Você não possui uma conta Premium");
+        }
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
+    }
+}
+function removerPlaylistApp() {
+    let idUsuario = get_text('Digite o id do usuário: ');
+    let idPlaylist = get_text('Digite o id do playlist: ');
+    let usuario = app.consultarIdUsuario(idUsuario);
+    if (usuario != null) {
+        if (usuario instanceof classfy_1.UsuarioPremium) {
+            let playlist = usuario.consultarIdPlaylist(idPlaylist);
+            if (playlist != null) {
+                usuario.excluirPlaylist(idPlaylist);
+            }
+        }
+        else {
+            console.log("Você não possui uma conta Premium");
+        }
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
+    }
+}
+function remover_musica_da_playlistApp() {
+    let idMusica = get_text('Digite o id da música: ');
+    let idUsuario = get_text('Digite o id do usuário: ');
+    let idPlaylist = get_text('Digite o id da Playlist: ');
+    let usuario = app.consultarIdUsuario(idUsuario);
+    if (usuario instanceof classfy_1.UsuarioPremium) {
+        let indexofPlaylist = usuario.consultarIndexPlaylist(idPlaylist);
+        let musica = app.consultarIdMusica(idMusica);
+        usuario.playlists[indexofPlaylist].remover_musica_da_playlist(musica);
+    }
+    else {
+        console.log("Você não possui uma conta Premium");
+    }
+}
+function virarPremium() {
+    let id = get_text('Digite o id do usuário: ');
+    let usuario = app.consultarIdUsuario(id);
+    let nome = app.consultarIdUsuario(id).nome_usuario;
+    if (usuario != null) {
+        if (usuario instanceof classfy_1.UsuarioFree) {
+            app.excluirUsuario(id);
+            let novoUsuario = new classfy_1.UsuarioPremium(id, nome);
+            app.inserirUsuario(novoUsuario);
+        }
+        else {
+            console.log("Usuário já é Premium!");
+        }
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
+    }
+}
+function virarFree() {
+    let id = get_text('Digite o id do usuário: ');
+    let usuario = app.consultarIdUsuario(id);
+    let nome = app.consultarIdUsuario(id).nome_usuario;
+    if (usuario != null) {
+        if (usuario instanceof classfy_1.UsuarioPremium) {
+            app.excluirUsuario(id);
+            let novoUsuario = new classfy_1.UsuarioFree(id, nome);
+            app.inserirUsuario(novoUsuario);
+        }
+        else {
+            console.log("Usuário já é Free!");
+        }
+    }
+    else {
+        throw new ErrosAplicacao_1.UsuarioNaoEncontradoError("Usuário não encontrado");
+    }
 }

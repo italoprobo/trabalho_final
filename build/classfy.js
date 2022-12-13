@@ -117,18 +117,20 @@ class Playlist {
     id_playlist;
     nome_playlist;
     musicas = [];
-    qtd_musicas = this.musicas.length;
+    qtd_musicas = 0;
     constructor(id_playlist, nome_playlist) {
         this.id_playlist = id_playlist;
         this.nome_playlist = nome_playlist;
     }
     inserir_musica_na_playlist(musica) {
         this.musicas.push(musica);
+        this.qtd_musicas++;
     }
     remover_musica_da_playlist(musica) {
         for (let m of this.musicas) {
             if (musica.id_musica == m.id_musica) {
                 this.musicas.pop();
+                this.qtd_musicas--;
             }
         }
     }
@@ -139,7 +141,7 @@ class Playlist {
         }
         return this.musicas;
     }
-    consultarIdMusica(id) {
+    consultarIdMusicaPlaylist(id) {
         let musicaProcurada;
         for (let i = 0; i < this.musicas.length; i++) {
             if (this.musicas[i].id_musica == id) {
